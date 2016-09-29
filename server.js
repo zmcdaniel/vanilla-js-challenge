@@ -5,52 +5,67 @@ var express = require('express');
 var fs = require('fs');
 var bodyParser = require('body-parser');
 var path = require('path');
-var app = express();
+var request = require('request');
 
+var app = express();
+var searchTerm; 
 
 // ========
 // SET / USE STATEMENTS
 // ========
 app.set('view engine', 'ejs');
-
-app.use(express.static(path.join(__dirname, '/public')));
-app.use(bodyParser.urlencoded({ extended: false }))
-//app.use(bodyParser.json());
-
+app.use(bodyParser.urlencoded({ extended: false }));
 
 // ========
 // ROUTES
 // ========
-app.get('/', express.static(path.join(__dirname, 'public')));
 
-
-app.post('/', function(req, res) {
-  var fileContents = fs.readFileSync('./data.json');
-  var data = JSON.parse(fileContents);
-  data.push(req.body);
-  fs.writeFileSync('./data.json', JSON.stringify(data));
-  res.redirect('/');
+app.get('/', function(req, res) {
+  res.render("index");
 });
 
-app.get('/favorites', function(req, res){
-  res.send('**favorites route**');
-  var fileContents = fs.readFileSync('./data.json');
-  var data = JSON.parse(fileContents);
-  res.render('index', {data});
+app.post('/search', function(req, res) {
+  searchQuery = req.body.searchQuery;
+  res.redirect('/search');
 });
 
-// app.get('favorites', function(req, res){
-//   if(!req.body.name || !req.body.oid){
-//     res.send("Error");
-//     return
-//   } else {
-//     var data = JSON.parse(fs.readFileSync('./data.json'));
-//     data.push(req.body);
-//     fs.writeFile('./data.json', JSON.stringify(data));
-//     res.setHeader('Content-Type', 'application/json');
-//     res.send(data);
-//   }
-// });
+app.get('/search', function(req, res) {
+  var qs = { s: searchQuery, plot: 'short', r: 'json' };
+
+  request({
+    url: 'http://www.omdbapi.com',
+    qs: qs
+  }, 
+  function(error, response, body){
+    if(!error && response.statusCode == 200){
+      var data = JSON.parse(body);
+      res.render("search", {search: data.Search});      
+    }
+    else{
+      res.send("sorry!! bad request, please try again");
+    }
+  });
+});
+
+app.get("/show/:imdbID", function(req, res){
+  console.log(req.params.imdbID);
+  var qs = { i: req.params.imdbID, plot: 'full', r: 'json'};
+
+  request({
+    url: 'http://www.omdbapi.com',
+    qs: qs
+  },
+  function(error, response, body){
+    if(!error && response.statusCode == 200){
+      var movie = JSON.parse(body);
+      res.render("show", {movieData: movie})
+    }
+    else{
+      res.send("sorry!! bad request, try again");
+    }
+  });
+});
+
 
 // ========
 // LISTEN
