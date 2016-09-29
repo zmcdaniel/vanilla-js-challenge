@@ -1,5 +1,7 @@
 <h1>Results</h1>
 
 <% search.forEach(function(searchResult){ %>
-  <% include ../partials/movie.ejs %>
+  <p>
+    <a href="/show/<%= searchResult.imdbID %>"><%= searchResult.Title %></a> [<%= searchResult.Year %>]
+  </p>
 <% }); %>
