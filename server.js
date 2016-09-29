@@ -12,7 +12,7 @@ var app = express();
 // SET / USE STATEMENTS
 // ========
 
-app.set('view engine', 'ejs');
+//app.set('view engine', 'ejs');
 
 app.use(express.static(path.join(__dirname, '/public')));
 app.use(bodyParser.urlencoded({ extended: false }))
@@ -26,9 +26,9 @@ app.get('/', express.static(path.join(__dirname, 'public')));
 
 app.get('/favorites', function(req, res){
   res.send('**favorites route**');
-  var data = fs.readFileSync('./data.json');
-  res.setHeader('Content-Type', 'application/json');
-  res.send(data);
+  var fileContents = fs.readFileSync('./data.json');
+  var data = JSON.parse(fileContents);
+  res.render('index', {data});
 });
 
 app.get('favorites', function(req, res){
